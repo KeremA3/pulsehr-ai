@@ -10,7 +10,7 @@ import {
 import {
   collection,
   addDoc,
-  getDocs,
+  onSnapshot,
   query,
   where
 } from "firebase/firestore";
@@ -44,7 +44,7 @@ export default function App() {
   const [password, setPassword] =
     useState("");
 
-  /* EMPLOYEE ACCOUNT */
+  /* EMPLOYEE CREATE */
 
   const [employeeEmail,
     setEmployeeEmail] =
@@ -54,13 +54,6 @@ export default function App() {
     setEmployeePassword] =
     useState("");
 
-  /* DARK MODE */
-
-  const [darkMode, setDarkMode] =
-    useState(true);
-
-  /* EMPLOYEE FORM */
-
   const [name, setName] =
     useState("");
 
@@ -68,7 +61,12 @@ export default function App() {
     setDepartment] =
     useState("Yazılım");
 
-  /* SEARCH */
+  /* UI */
+
+  const [darkMode, setDarkMode] =
+    useState(true);
+
+  /* FILTER */
 
   const [search, setSearch] =
     useState("");
@@ -83,7 +81,7 @@ export default function App() {
     setEmployees] =
     useState([]);
 
-  /* AUTH STATE */
+  /* AUTH LISTENER */
 
   useEffect(() => {
 
@@ -114,15 +112,27 @@ export default function App() {
                 )
               );
 
-              const querySnapshot =
-                await getDocs(q);
+              const snapshot =
+                await new Promise(
+                  (resolve) => {
+
+                    const unsub =
+                      onSnapshot(
+                        q,
+                        (snap) => {
+                          resolve(snap);
+                          unsub();
+                        }
+                      );
+                  }
+                );
 
               if (
-                !querySnapshot.empty
+                !snapshot.empty
               ) {
 
                 const roleData =
-                  querySnapshot.docs[0].data();
+                  snapshot.docs[0].data();
 
                 setUserRole(
                   roleData.role
@@ -163,25 +173,20 @@ export default function App() {
 
   }, []);
 
-  /* FETCH EMPLOYEES */
+  /* REALTIME EMPLOYEES */
 
   useEffect(() => {
 
-    const fetchEmployees =
-      async () => {
-
-        try {
-
-          const querySnapshot =
-            await getDocs(
-              collection(
-                db,
-                "employees"
-              )
-            );
+    const unsubscribe =
+      onSnapshot(
+        collection(
+          db,
+          "employees"
+        ),
+        (snapshot) => {
 
           const employeeList =
-            querySnapshot.docs.map(
+            snapshot.docs.map(
               (doc) => ({
                 id: doc.id,
                 ...doc.data()
@@ -191,14 +196,10 @@ export default function App() {
           setEmployees(
             employeeList
           );
-
-        } catch (error) {
-
-          console.log(error);
         }
-      };
+      );
 
-    fetchEmployees();
+    return () => unsubscribe();
 
   }, []);
 
@@ -271,6 +272,8 @@ export default function App() {
 
           role: "employee",
 
+          online: false,
+
           checkIn: null,
 
           checkOut: null,
@@ -281,14 +284,13 @@ export default function App() {
             new Date()
         };
 
-        const docRef =
-          await addDoc(
-            collection(
-              db,
-              "employees"
-            ),
-            newEmployee
-          );
+        await addDoc(
+          collection(
+            db,
+            "employees"
+          ),
+          newEmployee
+        );
 
         await addDoc(
           collection(
@@ -304,14 +306,6 @@ export default function App() {
           }
         );
 
-        setEmployees([
-          ...employees,
-          {
-            id: docRef.id,
-            ...newEmployee
-          }
-        ]);
-
         setName("");
 
         setDepartment(
@@ -323,7 +317,7 @@ export default function App() {
         setEmployeePassword("");
 
         alert(
-          "Personel hesabı oluşturuldu 🚀"
+          "Personel oluşturuldu 🚀"
         );
 
       } catch (error) {
@@ -423,7 +417,7 @@ export default function App() {
       }
     );
 
-  /* AI */
+  /* ANALYTICS */
 
   const totalEmployees =
     employees.length;
@@ -455,7 +449,7 @@ export default function App() {
       : 0;
 
   let aiMessage =
-    "Tüm departmanlar normal çalışıyor.";
+    "Tüm departmanlar stabil çalışıyor.";
 
   let riskColor =
     "text-green-400";
