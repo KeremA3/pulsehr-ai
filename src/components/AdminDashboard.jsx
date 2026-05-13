@@ -6,11 +6,11 @@ import {
 } from "lucide-react";
 
 import Sidebar from "./Sidebar";
-import DashboardCards from "./DashboardCards";
 import AIAnalytics from "./AIAnalytics";
 import EmployeeForm from "./EmployeeForm";
 import SearchFilter from "./SearchFilter";
 import EmployeeTable from "./EmployeeTable";
+import LeaveManagement from "./LeaveManagement";
 
 export default function AdminDashboard({
 
@@ -267,6 +267,14 @@ export default function AdminDashboard({
 
                 deleteEmployee={deleteEmployee}
               />
+
+            </div>
+
+            {/* LEAVE MANAGEMENT */}
+
+            <div className="bg-white/5 border border-white/10 rounded-[35px] p-8 backdrop-blur-2xl shadow-2xl">
+
+              <LeaveManagement />
 
             </div>
 
