@@ -14,7 +14,7 @@ export default function EmployeePortal({
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#111827] to-black text-white overflow-hidden">
 
-      {/* BACKGROUND BLUR */}
+      {/* BACKGROUND */}
 
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[120px]" />
 
@@ -35,13 +35,13 @@ export default function EmployeePortal({
             </p>
 
             <h1 className="text-6xl font-black leading-tight">
-              Employee
+              Çalışan
               <br />
-              Portal
+              Paneli
             </h1>
 
             <p className="text-gray-400 mt-5 text-lg">
-              Welcome back,
+              Tekrar hoş geldin,
               {" "}
               {currentUserEmail}
             </p>
@@ -51,14 +51,14 @@ export default function EmployeePortal({
           <div className="flex items-center gap-4">
 
             <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-3 rounded-2xl backdrop-blur-xl">
-              ● Active
+              ● Aktif Çalışan
             </div>
 
             <button
               onClick={handleLogout}
               className="bg-red-600 hover:bg-red-700 transition-all duration-300 px-6 py-3 rounded-2xl shadow-2xl"
             >
-              Logout
+              Çıkış Yap
             </button>
 
           </div>
@@ -73,7 +73,7 @@ export default function EmployeePortal({
           <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[30px] p-8 hover:scale-[1.02] transition-all duration-300 shadow-2xl">
 
             <p className="text-gray-400 mb-5">
-              Attendance Rate
+              Katılım Oranı
             </p>
 
             <h2 className="text-6xl font-black">
@@ -81,7 +81,7 @@ export default function EmployeePortal({
             </h2>
 
             <div className="mt-5 text-green-400">
-              ▲ +12% this month
+              ▲ Bu ay +12%
             </div>
 
           </div>
@@ -91,7 +91,7 @@ export default function EmployeePortal({
           <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[30px] p-8 hover:scale-[1.02] transition-all duration-300 shadow-2xl">
 
             <p className="text-gray-400 mb-5">
-              Completed Tasks
+              Tamamlanan Görev
             </p>
 
             <h2 className="text-6xl font-black">
@@ -99,7 +99,7 @@ export default function EmployeePortal({
             </h2>
 
             <div className="mt-5 text-blue-400">
-              AI productivity boosted
+              AI verimlilik artışı
             </div>
 
           </div>
@@ -109,15 +109,15 @@ export default function EmployeePortal({
           <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[30px] p-8 hover:scale-[1.02] transition-all duration-300 shadow-2xl">
 
             <p className="text-gray-400 mb-5">
-              AI Performance
+              AI Performansı
             </p>
 
             <h2 className="text-5xl font-black leading-tight">
-              Excellent
+              Mükemmel
             </h2>
 
             <div className="mt-5 text-purple-400">
-              Above company average
+              Şirket ortalamasının üstünde
             </div>
 
           </div>
@@ -135,11 +135,11 @@ export default function EmployeePortal({
             <div className="flex items-center justify-between mb-8">
 
               <h2 className="text-3xl font-bold">
-                Recent Activity
+                Son Aktiviteler
               </h2>
 
               <div className="text-blue-400">
-                Live Updates
+                Canlı Güncelleme
               </div>
 
             </div>
@@ -150,16 +150,16 @@ export default function EmployeePortal({
 
                 <div>
                   <p className="font-semibold text-lg">
-                    Check-in completed
+                    Giriş işlemi tamamlandı
                   </p>
 
                   <p className="text-gray-400 mt-1">
-                    AI verified attendance successfully
+                    AI katılım doğrulaması başarılı
                   </p>
                 </div>
 
                 <span className="text-green-400">
-                  Today
+                  Bugün
                 </span>
 
               </div>
@@ -168,16 +168,16 @@ export default function EmployeePortal({
 
                 <div>
                   <p className="font-semibold text-lg">
-                    Performance Report Generated
+                    Performans raporu oluşturuldu
                   </p>
 
                   <p className="text-gray-400 mt-1">
-                    Monthly analytics completed
+                    Aylık analiz tamamlandı
                   </p>
                 </div>
 
                 <span className="text-blue-400">
-                  Yesterday
+                  Dün
                 </span>
 
               </div>
@@ -186,16 +186,16 @@ export default function EmployeePortal({
 
                 <div>
                   <p className="font-semibold text-lg">
-                    AI Risk Analysis
+                    AI risk analizi
                   </p>
 
                   <p className="text-gray-400 mt-1">
-                    No attendance risk detected
+                    Risk tespit edilmedi
                   </p>
                 </div>
 
                 <span className="text-purple-400">
-                  2 days ago
+                  2 gün önce
                 </span>
 
               </div>
@@ -209,14 +209,14 @@ export default function EmployeePortal({
           <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[30px] p-8 shadow-2xl">
 
             <h2 className="text-3xl font-bold mb-8">
-              AI Assistant
+              AI Asistan
             </h2>
 
             <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 rounded-3xl p-6">
 
               <p className="text-lg leading-9 text-gray-200">
-                Your productivity and attendance metrics are performing above company standards.
-                Keep maintaining your consistency for AI promotion scoring.
+                Verimlilik ve katılım performansın şirket standartlarının üzerinde.
+                Bu performansı koruyarak AI terfi skorunu yükseltebilirsin.
               </p>
 
             </div>
@@ -226,7 +226,7 @@ export default function EmployeePortal({
               <div className="bg-black/20 rounded-2xl p-4 flex justify-between">
 
                 <span>
-                  Attendance Score
+                  Katılım Skoru
                 </span>
 
                 <span className="text-green-400">
@@ -238,11 +238,11 @@ export default function EmployeePortal({
               <div className="bg-black/20 rounded-2xl p-4 flex justify-between">
 
                 <span>
-                  AI Trust Index
+                  AI Güven Endeksi
                 </span>
 
                 <span className="text-blue-400">
-                  High
+                  Yüksek
                 </span>
 
               </div>
@@ -250,11 +250,11 @@ export default function EmployeePortal({
               <div className="bg-black/20 rounded-2xl p-4 flex justify-between">
 
                 <span>
-                  Promotion Chance
+                  Terfi Olasılığı
                 </span>
 
                 <span className="text-purple-400">
-                  87%
+                  %87
                 </span>
 
               </div>
