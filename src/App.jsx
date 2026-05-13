@@ -10,7 +10,9 @@ import {
 import {
   collection,
   addDoc,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "firebase/firestore";
 
 import { auth, db } from "./firebase";
@@ -31,6 +33,9 @@ export default function App() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [userRole, setUserRole] =
+    useState("");
 
   const [email, setEmail] =
     useState("");
@@ -83,8 +88,52 @@ export default function App() {
     const unsubscribe =
       onAuthStateChanged(
         auth,
-        (user) => {
-          setIsLoggedIn(!!user);
+        async (user) => {
+          if (user) {
+            setIsLoggedIn(true);
+
+            try {
+              const q = query(
+                collection(db, "users"),
+                where(
+                  "email",
+                  "==",
+                  user.email
+                )
+              );
+
+              const querySnapshot =
+                await getDocs(q);
+
+              if (
+                !querySnapshot.empty
+              ) {
+                const roleData =
+                  querySnapshot.docs[0].data();
+
+                setUserRole(
+                  roleData.role
+                );
+
+              } else {
+                setUserRole(
+                  "employee"
+                );
+              }
+
+            } catch (error) {
+              console.log(error);
+
+              setUserRole(
+                "employee"
+              );
+            }
+
+          } else {
+            setIsLoggedIn(false);
+
+            setUserRole("");
+          }
 
           setLoading(false);
         }
@@ -166,8 +215,6 @@ export default function App() {
       }
 
       try {
-        /* CREATE AUTH USER */
-
         const userCredential =
           await createUserWithEmailAndPassword(
             auth,
@@ -178,8 +225,6 @@ export default function App() {
         const user =
           userCredential.user;
 
-        /* FIRESTORE SAVE */
-
         const newEmployee = {
           uid: user.uid,
 
@@ -188,6 +233,8 @@ export default function App() {
           department,
 
           email: employeeEmail,
+
+          role: "employee",
 
           checkIn: null,
 
@@ -208,6 +255,20 @@ export default function App() {
             newEmployee
           );
 
+        await addDoc(
+          collection(
+            db,
+            "users"
+          ),
+          {
+            email:
+              employeeEmail,
+
+            role:
+              "employee"
+          }
+        );
+
         setEmployees([
           ...employees,
           {
@@ -215,8 +276,6 @@ export default function App() {
             ...newEmployee
           }
         ]);
-
-        /* RESET */
 
         setName("");
 
@@ -425,9 +484,15 @@ export default function App() {
         {/* TOP BAR */}
 
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold">
-            Dashboard
-          </h1>
+          <div>
+            <h1 className="text-4xl font-bold">
+              Dashboard
+            </h1>
+
+            <p className="text-gray-500 mt-2">
+              Rol: {userRole}
+            </p>
+          </div>
 
           <div className="flex gap-3">
             <button
@@ -485,33 +550,35 @@ export default function App() {
           }
         />
 
-        {/* FORM */}
+        {/* ADMIN ONLY */}
 
-        <EmployeeForm
-          name={name}
-          setName={setName}
-          department={
-            department
-          }
-          setDepartment={
-            setDepartment
-          }
-          employeeEmail={
-            employeeEmail
-          }
-          setEmployeeEmail={
-            setEmployeeEmail
-          }
-          employeePassword={
-            employeePassword
-          }
-          setEmployeePassword={
-            setEmployeePassword
-          }
-          addEmployee={
-            addEmployee
-          }
-        />
+        {userRole === "admin" ? (
+          <EmployeeForm
+            name={name}
+            setName={setName}
+            department={
+              department
+            }
+            setDepartment={
+              setDepartment
+            }
+            employeeEmail={
+              employeeEmail
+            }
+            setEmployeeEmail={
+              setEmployeeEmail
+            }
+            employeePassword={
+              employeePassword
+            }
+            setEmployeePassword={
+              setEmployeePassword
+            }
+            addEmployee={
+              addEmployee
+            }
+          />
+        ) : null}
 
         {/* FILTER */}
 
