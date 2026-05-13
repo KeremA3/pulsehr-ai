@@ -18,15 +18,11 @@ import {
 import { auth, db } from "./firebase";
 
 import LoginPage from "./components/LoginPage";
-import Sidebar from "./components/Sidebar";
-import EmployeeTable from "./components/EmployeeTable";
-import AIAnalytics from "./components/AIAnalytics";
-import DashboardCards from "./components/DashboardCards";
-import EmployeeForm from "./components/EmployeeForm";
-import SearchFilter from "./components/SearchFilter";
 import EmployeePortal from "./components/EmployeePortal";
+import AdminDashboard from "./components/AdminDashboard";
 
 export default function App() {
+
   /* AUTH */
 
   const [isLoggedIn, setIsLoggedIn] =
@@ -61,7 +57,7 @@ export default function App() {
   /* DARK MODE */
 
   const [darkMode, setDarkMode] =
-    useState(false);
+    useState(true);
 
   /* EMPLOYEE FORM */
 
@@ -90,11 +86,14 @@ export default function App() {
   /* AUTH STATE */
 
   useEffect(() => {
+
     const unsubscribe =
       onAuthStateChanged(
         auth,
         async (user) => {
+
           if (user) {
+
             setIsLoggedIn(true);
 
             setCurrentUserEmail(
@@ -102,8 +101,12 @@ export default function App() {
             );
 
             try {
+
               const q = query(
-                collection(db, "users"),
+                collection(
+                  db,
+                  "users"
+                ),
                 where(
                   "email",
                   "==",
@@ -117,6 +120,7 @@ export default function App() {
               if (
                 !querySnapshot.empty
               ) {
+
                 const roleData =
                   querySnapshot.docs[0].data();
 
@@ -125,12 +129,14 @@ export default function App() {
                 );
 
               } else {
+
                 setUserRole(
                   "employee"
                 );
               }
 
             } catch (error) {
+
               console.log(error);
 
               setUserRole(
@@ -139,6 +145,7 @@ export default function App() {
             }
 
           } else {
+
             setIsLoggedIn(false);
 
             setUserRole("");
@@ -153,14 +160,18 @@ export default function App() {
       );
 
     return () => unsubscribe();
+
   }, []);
 
   /* FETCH EMPLOYEES */
 
   useEffect(() => {
+
     const fetchEmployees =
       async () => {
+
         try {
+
           const querySnapshot =
             await getDocs(
               collection(
@@ -182,32 +193,39 @@ export default function App() {
           );
 
         } catch (error) {
+
           console.log(error);
         }
       };
 
     fetchEmployees();
+
   }, []);
 
   /* LOGIN */
 
-  const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  const handleLogin =
+    async () => {
 
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+      try {
+
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+      } catch (error) {
+
+        alert(error.message);
+      }
+    };
 
   /* LOGOUT */
 
   const handleLogout =
     async () => {
+
       await signOut(auth);
     };
 
@@ -215,11 +233,13 @@ export default function App() {
 
   const addEmployee =
     async () => {
+
       if (
         !name.trim() ||
         !employeeEmail ||
         !employeePassword
       ) {
+
         alert(
           "Tüm alanları doldur."
         );
@@ -228,6 +248,7 @@ export default function App() {
       }
 
       try {
+
         const userCredential =
           await createUserWithEmailAndPassword(
             auth,
@@ -239,6 +260,7 @@ export default function App() {
           userCredential.user;
 
         const newEmployee = {
+
           uid: user.uid,
 
           name,
@@ -305,6 +327,7 @@ export default function App() {
         );
 
       } catch (error) {
+
         console.log(error);
 
         alert(error.message);
@@ -314,12 +337,16 @@ export default function App() {
   /* CHECK-IN */
 
   const checkIn = (id) => {
-    const now = new Date();
+
+    const now =
+      new Date();
 
     const isLate =
       now.getHours() > 9 ||
-      (now.getHours() === 9 &&
-        now.getMinutes() > 0);
+      (
+        now.getHours() === 9 &&
+        now.getMinutes() > 0
+      );
 
     setEmployees((prev) =>
       prev.map((emp) =>
@@ -328,7 +355,8 @@ export default function App() {
               ...emp,
               checkIn:
                 now.toLocaleTimeString(),
-              late: isLate
+              late:
+                isLate
             }
           : emp
       )
@@ -338,7 +366,9 @@ export default function App() {
   /* CHECK-OUT */
 
   const checkOut = (id) => {
-    const now = new Date();
+
+    const now =
+      new Date();
 
     setEmployees((prev) =>
       prev.map((emp) =>
@@ -355,20 +385,23 @@ export default function App() {
 
   /* DELETE */
 
-  const deleteEmployee = (id) => {
-    setEmployees((prev) =>
-      prev.filter(
-        (employee) =>
-          employee.id !== id
-      )
-    );
-  };
+  const deleteEmployee =
+    (id) => {
+
+      setEmployees((prev) =>
+        prev.filter(
+          (employee) =>
+            employee.id !== id
+        )
+      );
+    };
 
   /* FILTER */
 
   const filteredEmployees =
     employees.filter(
       (employee) => {
+
         const matchesSearch =
           employee.name
             .toLowerCase()
@@ -414,9 +447,10 @@ export default function App() {
   const riskScore =
     totalEmployees > 0
       ? Math.round(
-          (lateEmployees /
-            totalEmployees) *
-            100
+          (
+            lateEmployees /
+            totalEmployees
+          ) * 100
         )
       : 0;
 
@@ -427,6 +461,7 @@ export default function App() {
     "text-green-400";
 
   if (riskScore >= 50) {
+
     aiMessage =
       "Yüksek risk tespit edildi.";
 
@@ -436,6 +471,7 @@ export default function App() {
   } else if (
     riskScore >= 25
   ) {
+
     aiMessage =
       "Orta seviye risk tespit edildi.";
 
@@ -460,8 +496,9 @@ export default function App() {
   /* LOADING */
 
   if (loading) {
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white text-3xl font-bold">
+      <div className="min-h-screen flex items-center justify-center bg-black text-white text-4xl font-black">
         PulseHR AI Loading...
       </div>
     );
@@ -470,6 +507,7 @@ export default function App() {
   /* LOGIN */
 
   if (!isLoggedIn) {
+
     return (
       <LoginPage
         email={email}
@@ -481,9 +519,10 @@ export default function App() {
     );
   }
 
-  /* EMPLOYEE PORTAL */
+  /* EMPLOYEE */
 
   if (userRole === "employee") {
+
     return (
       <EmployeePortal
         currentUserEmail={
@@ -493,148 +532,75 @@ export default function App() {
     );
   }
 
-  /* ADMIN DASHBOARD */
+  /* ADMIN */
 
   return (
-    <div
-      className={`flex min-h-screen ${
-        darkMode
-          ? "bg-gray-900 text-white"
-          : "bg-gray-100 text-black"
-      }`}
-    >
-      <Sidebar />
+    <AdminDashboard
 
-      <div className="flex-1 p-8">
-        {/* TOP BAR */}
+      darkMode={darkMode}
+      setDarkMode={setDarkMode}
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold">
-              Admin Dashboard
-            </h1>
+      handleLogout={
+        handleLogout
+      }
 
-            <p className="text-gray-500 mt-2">
-              Rol: {userRole}
-            </p>
-          </div>
+      totalEmployees={
+        totalEmployees
+      }
 
-          <div className="flex gap-3">
-            <button
-              onClick={() =>
-                setDarkMode(
-                  !darkMode
-                )
-              }
-              className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition"
-            >
-              {darkMode
-                ? "☀️ Light"
-                : "🌙 Dark"}
-            </button>
+      checkedInEmployees={
+        checkedInEmployees
+      }
 
-            <button
-              onClick={
-                handleLogout
-              }
-              className="bg-red-600 text-white px-5 py-3 rounded-xl hover:bg-red-700 transition"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+      lateEmployees={
+        lateEmployees
+      }
 
-        {/* DASHBOARD */}
+      riskScore={
+        riskScore
+      }
 
-        <DashboardCards
-          totalEmployees={
-            totalEmployees
-          }
-          checkedInEmployees={
-            checkedInEmployees
-          }
-          lateEmployees={
-            lateEmployees
-          }
-        />
+      riskColor={
+        riskColor
+      }
 
-        {/* AI */}
+      aiMessage={
+        aiMessage
+      }
 
-        <AIAnalytics
-          riskScore={
-            riskScore
-          }
-          riskColor={
-            riskColor
-          }
-          aiMessage={
-            aiMessage
-          }
-          chartData={
-            chartData
-          }
-        />
+      chartData={
+        chartData
+      }
 
-        {/* EMPLOYEE FORM */}
+      name={name}
+      setName={setName}
 
-        <EmployeeForm
-          name={name}
-          setName={setName}
-          department={
-            department
-          }
-          setDepartment={
-            setDepartment
-          }
-          employeeEmail={
-            employeeEmail
-          }
-          setEmployeeEmail={
-            setEmployeeEmail
-          }
-          employeePassword={
-            employeePassword
-          }
-          setEmployeePassword={
-            setEmployeePassword
-          }
-          addEmployee={
-            addEmployee
-          }
-        />
+      department={department}
+      setDepartment={setDepartment}
 
-        {/* FILTER */}
+      employeeEmail={employeeEmail}
+      setEmployeeEmail={setEmployeeEmail}
 
-        <SearchFilter
-          search={search}
-          setSearch={
-            setSearch
-          }
-          filterDepartment={
-            filterDepartment
-          }
-          setFilterDepartment={
-            setFilterDepartment
-          }
-        />
+      employeePassword={employeePassword}
+      setEmployeePassword={setEmployeePassword}
 
-        {/* TABLE */}
+      addEmployee={addEmployee}
 
-        <EmployeeTable
-          filteredEmployees={
-            filteredEmployees
-          }
-          checkIn={
-            checkIn
-          }
-          checkOut={
-            checkOut
-          }
-          deleteEmployee={
-            deleteEmployee
-          }
-        />
-      </div>
-    </div>
+      search={search}
+      setSearch={setSearch}
+
+      filterDepartment={filterDepartment}
+      setFilterDepartment={setFilterDepartment}
+
+      filteredEmployees={filteredEmployees}
+
+      checkIn={checkIn}
+      checkOut={checkOut}
+
+      deleteEmployee={deleteEmployee}
+
+      userRole={userRole}
+
+    />
   );
 }
