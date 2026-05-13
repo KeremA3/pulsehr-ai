@@ -24,6 +24,7 @@ import AIAnalytics from "./components/AIAnalytics";
 import DashboardCards from "./components/DashboardCards";
 import EmployeeForm from "./components/EmployeeForm";
 import SearchFilter from "./components/SearchFilter";
+import EmployeePortal from "./components/EmployeePortal";
 
 export default function App() {
   /* AUTH */
@@ -35,6 +36,10 @@ export default function App() {
     useState(true);
 
   const [userRole, setUserRole] =
+    useState("");
+
+  const [currentUserEmail,
+    setCurrentUserEmail] =
     useState("");
 
   const [email, setEmail] =
@@ -92,6 +97,10 @@ export default function App() {
           if (user) {
             setIsLoggedIn(true);
 
+            setCurrentUserEmail(
+              user.email
+            );
+
             try {
               const q = query(
                 collection(db, "users"),
@@ -133,6 +142,10 @@ export default function App() {
             setIsLoggedIn(false);
 
             setUserRole("");
+
+            setCurrentUserEmail(
+              ""
+            );
           }
 
           setLoading(false);
@@ -468,7 +481,19 @@ export default function App() {
     );
   }
 
-  /* DASHBOARD */
+  /* EMPLOYEE PORTAL */
+
+  if (userRole === "employee") {
+    return (
+      <EmployeePortal
+        currentUserEmail={
+          currentUserEmail
+        }
+      />
+    );
+  }
+
+  /* ADMIN DASHBOARD */
 
   return (
     <div
@@ -486,7 +511,7 @@ export default function App() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold">
-              Dashboard
+              Admin Dashboard
             </h1>
 
             <p className="text-gray-500 mt-2">
@@ -550,35 +575,33 @@ export default function App() {
           }
         />
 
-        {/* ADMIN ONLY */}
+        {/* EMPLOYEE FORM */}
 
-        {userRole === "admin" ? (
-          <EmployeeForm
-            name={name}
-            setName={setName}
-            department={
-              department
-            }
-            setDepartment={
-              setDepartment
-            }
-            employeeEmail={
-              employeeEmail
-            }
-            setEmployeeEmail={
-              setEmployeeEmail
-            }
-            employeePassword={
-              employeePassword
-            }
-            setEmployeePassword={
-              setEmployeePassword
-            }
-            addEmployee={
-              addEmployee
-            }
-          />
-        ) : null}
+        <EmployeeForm
+          name={name}
+          setName={setName}
+          department={
+            department
+          }
+          setDepartment={
+            setDepartment
+          }
+          employeeEmail={
+            employeeEmail
+          }
+          setEmployeeEmail={
+            setEmployeeEmail
+          }
+          employeePassword={
+            employeePassword
+          }
+          setEmployeePassword={
+            setEmployeePassword
+          }
+          addEmployee={
+            addEmployee
+          }
+        />
 
         {/* FILTER */}
 
