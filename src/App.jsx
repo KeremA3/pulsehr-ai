@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import {
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  createUserWithEmailAndPassword
 } from "firebase/auth";
 
 import {
@@ -37,6 +38,16 @@ export default function App() {
   const [password, setPassword] =
     useState("");
 
+  /* EMPLOYEE ACCOUNT */
+
+  const [employeeEmail,
+    setEmployeeEmail] =
+    useState("");
+
+  const [employeePassword,
+    setEmployeePassword] =
+    useState("");
+
   /* DARK MODE */
 
   const [darkMode, setDarkMode] =
@@ -44,9 +55,11 @@ export default function App() {
 
   /* EMPLOYEE FORM */
 
-  const [name, setName] = useState("");
+  const [name, setName] =
+    useState("");
 
-  const [department, setDepartment] =
+  const [department,
+    setDepartment] =
     useState("Yazılım");
 
   /* SEARCH */
@@ -54,26 +67,24 @@ export default function App() {
   const [search, setSearch] =
     useState("");
 
-  const [filterDepartment, setFilterDepartment] =
+  const [filterDepartment,
+    setFilterDepartment] =
     useState("Tümü");
 
   /* EMPLOYEES */
 
-  const [employees, setEmployees] =
+  const [employees,
+    setEmployees] =
     useState([]);
 
-  /* AUTH SYSTEM */
+  /* AUTH STATE */
 
   useEffect(() => {
     const unsubscribe =
       onAuthStateChanged(
         auth,
         (user) => {
-          if (user) {
-            setIsLoggedIn(true);
-          } else {
-            setIsLoggedIn(false);
-          }
+          setIsLoggedIn(!!user);
 
           setLoading(false);
         }
@@ -133,56 +144,100 @@ export default function App() {
 
   /* LOGOUT */
 
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
-
-  /* ADD EMPLOYEE */
-
-  const addEmployee = async () => {
-    if (!name.trim()) return;
-
-    const newEmployee = {
-      name,
-      department,
-      checkIn: null,
-      checkOut: null,
-      late: false,
-      createdAt: new Date()
+  const handleLogout =
+    async () => {
+      await signOut(auth);
     };
 
-    try {
-      const docRef =
-        await addDoc(
-          collection(
-            db,
-            "employees"
-          ),
-          newEmployee
+  /* CREATE EMPLOYEE */
+
+  const addEmployee =
+    async () => {
+      if (
+        !name.trim() ||
+        !employeeEmail ||
+        !employeePassword
+      ) {
+        alert(
+          "Tüm alanları doldur."
         );
 
-      setEmployees([
-        ...employees,
-        {
-          id: docRef.id,
-          ...newEmployee
-        }
-      ]);
+        return;
+      }
 
-      setName("");
+      try {
+        /* CREATE AUTH USER */
 
-      alert(
-        "Personel Firebase'e kaydedildi 🚀"
-      );
+        const userCredential =
+          await createUserWithEmailAndPassword(
+            auth,
+            employeeEmail,
+            employeePassword
+          );
 
-    } catch (error) {
-      console.log(error);
+        const user =
+          userCredential.user;
 
-      alert(
-        "Kayıt başarısız."
-      );
-    }
-  };
+        /* FIRESTORE SAVE */
+
+        const newEmployee = {
+          uid: user.uid,
+
+          name,
+
+          department,
+
+          email: employeeEmail,
+
+          checkIn: null,
+
+          checkOut: null,
+
+          late: false,
+
+          createdAt:
+            new Date()
+        };
+
+        const docRef =
+          await addDoc(
+            collection(
+              db,
+              "employees"
+            ),
+            newEmployee
+          );
+
+        setEmployees([
+          ...employees,
+          {
+            id: docRef.id,
+            ...newEmployee
+          }
+        ]);
+
+        /* RESET */
+
+        setName("");
+
+        setDepartment(
+          "Yazılım"
+        );
+
+        setEmployeeEmail("");
+
+        setEmployeePassword("");
+
+        alert(
+          "Personel hesabı oluşturuldu 🚀"
+        );
+
+      } catch (error) {
+        console.log(error);
+
+        alert(error.message);
+      }
+    };
 
   /* CHECK-IN */
 
@@ -231,7 +286,8 @@ export default function App() {
   const deleteEmployee = (id) => {
     setEmployees((prev) =>
       prev.filter(
-        (employee) => employee.id !== id
+        (employee) =>
+          employee.id !== id
       )
     );
   };
@@ -239,42 +295,49 @@ export default function App() {
   /* FILTER */
 
   const filteredEmployees =
-    employees.filter((employee) => {
-      const matchesSearch =
-        employee.name
-          .toLowerCase()
-          .includes(
-            search.toLowerCase()
-          );
+    employees.filter(
+      (employee) => {
+        const matchesSearch =
+          employee.name
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            );
 
-      const matchesDepartment =
-        filterDepartment === "Tümü"
-          ? true
-          : employee.department ===
-            filterDepartment;
+        const matchesDepartment =
+          filterDepartment ===
+          "Tümü"
+            ? true
+            : employee.department ===
+              filterDepartment;
 
-      return (
-        matchesSearch &&
-        matchesDepartment
-      );
-    });
+        return (
+          matchesSearch &&
+          matchesDepartment
+        );
+      }
+    );
 
   /* AI */
 
-  const totalEmployees = employees.length;
+  const totalEmployees =
+    employees.length;
 
   const checkedInEmployees =
     employees.filter(
-      (employee) => employee.checkIn
+      (employee) =>
+        employee.checkIn
     ).length;
 
   const lateEmployees =
     employees.filter(
-      (employee) => employee.late
+      (employee) =>
+        employee.late
     ).length;
 
   const normalEmployees =
-    totalEmployees - lateEmployees;
+    totalEmployees -
+    lateEmployees;
 
   const riskScore =
     totalEmployees > 0
@@ -295,23 +358,30 @@ export default function App() {
     aiMessage =
       "Yüksek risk tespit edildi.";
 
-    riskColor = "text-red-400";
-  } else if (riskScore >= 25) {
+    riskColor =
+      "text-red-400";
+
+  } else if (
+    riskScore >= 25
+  ) {
     aiMessage =
       "Orta seviye risk tespit edildi.";
 
-    riskColor = "text-yellow-400";
+    riskColor =
+      "text-yellow-400";
   }
 
   const chartData = [
     {
       name: "Normal",
-      value: normalEmployees
+      value:
+        normalEmployees
     },
 
     {
       name: "Geç",
-      value: lateEmployees
+      value:
+        lateEmployees
     }
   ];
 
@@ -353,6 +423,7 @@ export default function App() {
 
       <div className="flex-1 p-8">
         {/* TOP BAR */}
+
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold">
             Dashboard
@@ -361,7 +432,9 @@ export default function App() {
           <div className="flex gap-3">
             <button
               onClick={() =>
-                setDarkMode(!darkMode)
+                setDarkMode(
+                  !darkMode
+                )
               }
               className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition"
             >
@@ -371,7 +444,9 @@ export default function App() {
             </button>
 
             <button
-              onClick={handleLogout}
+              onClick={
+                handleLogout
+              }
               className="bg-red-600 text-white px-5 py-3 rounded-xl hover:bg-red-700 transition"
             >
               Logout
@@ -379,7 +454,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* DASHBOARD CARDS */}
+        {/* DASHBOARD */}
+
         <DashboardCards
           totalEmployees={
             totalEmployees
@@ -392,29 +468,58 @@ export default function App() {
           }
         />
 
-        {/* AI ANALYTICS */}
+        {/* AI */}
+
         <AIAnalytics
-          riskScore={riskScore}
-          riskColor={riskColor}
-          aiMessage={aiMessage}
-          chartData={chartData}
+          riskScore={
+            riskScore
+          }
+          riskColor={
+            riskColor
+          }
+          aiMessage={
+            aiMessage
+          }
+          chartData={
+            chartData
+          }
         />
 
-        {/* EMPLOYEE FORM */}
+        {/* FORM */}
+
         <EmployeeForm
           name={name}
           setName={setName}
-          department={department}
+          department={
+            department
+          }
           setDepartment={
             setDepartment
           }
-          addEmployee={addEmployee}
+          employeeEmail={
+            employeeEmail
+          }
+          setEmployeeEmail={
+            setEmployeeEmail
+          }
+          employeePassword={
+            employeePassword
+          }
+          setEmployeePassword={
+            setEmployeePassword
+          }
+          addEmployee={
+            addEmployee
+          }
         />
 
-        {/* SEARCH FILTER */}
+        {/* FILTER */}
+
         <SearchFilter
           search={search}
-          setSearch={setSearch}
+          setSearch={
+            setSearch
+          }
           filterDepartment={
             filterDepartment
           }
@@ -423,14 +528,21 @@ export default function App() {
           }
         />
 
-        {/* EMPLOYEE TABLE */}
+        {/* TABLE */}
+
         <EmployeeTable
           filteredEmployees={
             filteredEmployees
           }
-          checkIn={checkIn}
-          checkOut={checkOut}
-          deleteEmployee={deleteEmployee}
+          checkIn={
+            checkIn
+          }
+          checkOut={
+            checkOut
+          }
+          deleteEmployee={
+            deleteEmployee
+          }
         />
       </div>
     </div>

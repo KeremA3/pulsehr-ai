@@ -1,8 +1,16 @@
 export default function EmployeeForm({
   name,
   setName,
+
   department,
   setDepartment,
+
+  employeeEmail,
+  setEmployeeEmail,
+
+  employeePassword,
+  setEmployeePassword,
+
   addEmployee
 }) {
   return (
@@ -11,16 +19,18 @@ export default function EmployeeForm({
         Personel Ekle
       </h2>
 
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 gap-4">
+        {/* NAME */}
         <input
           value={name}
           onChange={(e) =>
             setName(e.target.value)
           }
           placeholder="Personel adı"
-          className="border rounded-xl p-3 w-64"
+          className="border rounded-xl p-3"
         />
 
+        {/* DEPARTMENT */}
         <select
           value={department}
           onChange={(e) =>
@@ -38,13 +48,39 @@ export default function EmployeeForm({
           <option>Satış</option>
         </select>
 
-        <button
-          onClick={addEmployee}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
-        >
-          Ekle
-        </button>
+        {/* EMAIL */}
+        <input
+          type="email"
+          value={employeeEmail}
+          onChange={(e) =>
+            setEmployeeEmail(
+              e.target.value
+            )
+          }
+          placeholder="Personel email"
+          className="border rounded-xl p-3"
+        />
+
+        {/* PASSWORD */}
+        <input
+          type="password"
+          value={employeePassword}
+          onChange={(e) =>
+            setEmployeePassword(
+              e.target.value
+            )
+          }
+          placeholder="Personel şifre"
+          className="border rounded-xl p-3"
+        />
       </div>
+
+      <button
+        onClick={addEmployee}
+        className="mt-5 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
+      >
+        Personel Oluştur
+      </button>
     </div>
   );
 }
