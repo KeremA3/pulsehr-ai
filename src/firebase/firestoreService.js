@@ -418,4 +418,58 @@ export const getEmployeePayroll =
           item.employeeName ===
           employeeName
       );
+  };const employeeProfileCollection =
+  collection(
+    db,
+    "employeeProfiles"
+  );
+
+/* CREATE EMPLOYEE PROFILE */
+
+export const createEmployeeProfile =
+  async (
+
+    email,
+    department
+
+  ) => {
+
+    await addDoc(
+
+      employeeProfileCollection,
+
+      {
+
+        email,
+
+        department,
+
+        role: "employee",
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+  };
+
+/* GET EMPLOYEE PROFILE */
+
+export const getEmployeeProfiles =
+  async () => {
+
+    const data =
+      await getDocs(
+        employeeProfileCollection
+      );
+
+    return data.docs.map(
+      (doc) => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+      })
+    );
   };

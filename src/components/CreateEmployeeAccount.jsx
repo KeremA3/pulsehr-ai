@@ -1,5 +1,6 @@
 import {
 
+  useEffect,
   useState
 
 } from "react";
@@ -9,6 +10,12 @@ import {
   createEmployeeAccount
 
 } from "../firebase/authService";
+
+import {
+
+  getDepartments
+
+} from "../firebase/firestoreService";
 
 import PremiumToast from "./PremiumToast";
 
@@ -22,19 +29,58 @@ export default function CreateEmployeeAccount() {
     setPassword] =
     useState("");
 
+  const [department,
+    setDepartment] =
+    useState("");
+
+  const [departments,
+    setDepartments] =
+    useState([]);
+
   const [toast,
     setToast] =
     useState(null);
 
-  /* CREATE */
+  /* LOAD DEPARTMENTS */
+
+  useEffect(() => {
+
+    const loadDepartments =
+      async () => {
+
+        const data =
+          await getDepartments();
+
+        setDepartments(data);
+      };
+
+    loadDepartments();
+
+  }, []);
+
+  /* CREATE ACCOUNT */
 
   const handleCreate =
     async () => {
 
       if (
         !email ||
-        !password
-      ) return;
+        !password ||
+        !department
+      ) {
+
+        setToast(
+          "Tüm alanları doldurun."
+        );
+
+        setTimeout(() => {
+
+          setToast(null);
+
+        }, 2500);
+
+        return;
+      }
 
       try {
 
@@ -51,6 +97,7 @@ export default function CreateEmployeeAccount() {
 
         setEmail("");
         setPassword("");
+        setDepartment("");
 
       } catch {
 
@@ -82,7 +129,7 @@ export default function CreateEmployeeAccount() {
 
         {/* GLOW */}
 
-        <div className="absolute top-0 right-0 w-[140px] h-[140px] bg-blue-500/10 rounded-full blur-[70px]" />
+        <div className="absolute top-0 right-0 w-[140px] h-[140px] bg-cyan-500/10 rounded-full blur-[70px]" />
 
         {/* HEADER */}
 
@@ -102,6 +149,8 @@ export default function CreateEmployeeAccount() {
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-5">
 
+          {/* EMAIL */}
+
           <input
             value={email}
             onChange={(e) =>
@@ -112,6 +161,8 @@ export default function CreateEmployeeAccount() {
             placeholder="Personel email"
             className="bg-black/20 border border-white/10 rounded-[22px] px-5 py-5 text-white outline-none"
           />
+
+          {/* PASSWORD */}
 
           <input
             type="password"
@@ -124,6 +175,37 @@ export default function CreateEmployeeAccount() {
             placeholder="Geçici şifre"
             className="bg-black/20 border border-white/10 rounded-[22px] px-5 py-5 text-white outline-none"
           />
+
+          {/* DEPARTMENT */}
+
+          <select
+            value={department}
+            onChange={(e) =>
+              setDepartment(
+                e.target.value
+              )
+            }
+            className="bg-black/20 border border-white/10 rounded-[22px] px-5 py-5 text-white outline-none"
+          >
+
+            <option value="">
+              Departman Seç
+            </option>
+
+            {departments.map((dep) => (
+
+              <option
+                key={dep.id}
+                value={dep.name}
+              >
+
+                {dep.name}
+
+              </option>
+
+            ))}
+
+          </select>
 
         </div>
 
