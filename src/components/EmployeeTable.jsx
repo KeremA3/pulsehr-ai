@@ -2,8 +2,13 @@ import {
   Trash2,
   LogIn,
   LogOut,
-  Circle
+  Circle,
+  Eye
 } from "lucide-react";
+
+import { useState } from "react";
+
+import EmployeeDetailModal from "./EmployeeDetailModal";
 
 export default function EmployeeTable({
 
@@ -16,9 +21,22 @@ export default function EmployeeTable({
 
 }) {
 
+  const [selectedEmployee,
+    setSelectedEmployee] =
+    useState(null);
+
   return (
 
     <div>
+
+      {/* MODAL */}
+
+      <EmployeeDetailModal
+        employee={selectedEmployee}
+        onClose={() =>
+          setSelectedEmployee(null)
+        }
+      />
 
       {/* HEADER */}
 
@@ -76,6 +94,10 @@ export default function EmployeeTable({
 
               <th className="p-6 font-semibold">
                 Çıkış
+              </th>
+
+              <th className="p-6 font-semibold">
+                Detay
               </th>
 
               <th className="p-6 font-semibold">
@@ -222,6 +244,27 @@ export default function EmployeeTable({
                       </button>
 
                     )}
+
+                  </td>
+
+                  {/* DETAIL */}
+
+                  <td className="p-6">
+
+                    <button
+                      onClick={() =>
+                        setSelectedEmployee(
+                          employee
+                        )
+                      }
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 transition-all duration-300 px-5 py-3 rounded-2xl text-white font-semibold shadow-xl"
+                    >
+
+                      <Eye size={18} />
+
+                      Görüntüle
+
+                    </button>
 
                   </td>
 

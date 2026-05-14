@@ -1,207 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+import Dashboard from "./components/Dashboard";
+import EmployeeDashboard from "./components/EmployeeDashboard";
 
 import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword
-} from "firebase/auth";
 
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  where
-} from "firebase/firestore";
+  loginUser
 
-import { auth, db } from "./firebase";
-
-import LoginPage from "./components/LoginPage";
-import EmployeePortal from "./components/EmployeePortal";
-import AdminDashboard from "./components/AdminDashboard";
+} from "./firebase/authService";
 
 export default function App() {
 
-  /* AUTH */
-
-  const [isLoggedIn, setIsLoggedIn] =
+  const [loggedIn,
+    setLoggedIn] =
     useState(false);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [userRole,
+    setUserRole] =
+    useState(null);
 
-  const [userRole, setUserRole] =
+  const [email,
+    setEmail] =
     useState("");
 
-  const [currentUserEmail,
-    setCurrentUserEmail] =
+  const [password,
+    setPassword] =
     useState("");
 
-  const [email, setEmail] =
+  const [loading,
+    setLoading] =
+    useState(false);
+
+  const [error,
+    setError] =
     useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  /* EMPLOYEE CREATE */
-
-  const [employeeEmail,
-    setEmployeeEmail] =
-    useState("");
-
-  const [employeePassword,
-    setEmployeePassword] =
-    useState("");
-
-  const [name, setName] =
-    useState("");
-
-  const [department,
-    setDepartment] =
-    useState("Yazılım");
-
-  /* UI */
-
-  const [darkMode, setDarkMode] =
-    useState(true);
-
-  /* FILTER */
-
-  const [search, setSearch] =
-    useState("");
-
-  const [filterDepartment,
-    setFilterDepartment] =
-    useState("Tümü");
-
-  /* EMPLOYEES */
-
-  const [employees,
-    setEmployees] =
-    useState([]);
-
-  /* AUTH LISTENER */
-
-  useEffect(() => {
-
-    const unsubscribe =
-      onAuthStateChanged(
-        auth,
-        async (user) => {
-
-          if (user) {
-
-            setIsLoggedIn(true);
-
-            setCurrentUserEmail(
-              user.email
-            );
-
-            try {
-
-              const q = query(
-                collection(
-                  db,
-                  "users"
-                ),
-                where(
-                  "email",
-                  "==",
-                  user.email
-                )
-              );
-
-              const snapshot =
-                await new Promise(
-                  (resolve) => {
-
-                    const unsub =
-                      onSnapshot(
-                        q,
-                        (snap) => {
-                          resolve(snap);
-                          unsub();
-                        }
-                      );
-                  }
-                );
-
-              if (
-                !snapshot.empty
-              ) {
-
-                const roleData =
-                  snapshot.docs[0].data();
-
-                setUserRole(
-                  roleData.role
-                );
-
-              } else {
-
-                setUserRole(
-                  "employee"
-                );
-              }
-
-            } catch (error) {
-
-              console.log(error);
-
-              setUserRole(
-                "employee"
-              );
-            }
-
-          } else {
-
-            setIsLoggedIn(false);
-
-            setUserRole("");
-
-            setCurrentUserEmail(
-              ""
-            );
-          }
-
-          setLoading(false);
-        }
-      );
-
-    return () => unsubscribe();
-
-  }, []);
-
-  /* REALTIME EMPLOYEES */
-
-  useEffect(() => {
-
-    const unsubscribe =
-      onSnapshot(
-        collection(
-          db,
-          "employees"
-        ),
-        (snapshot) => {
-
-          const employeeList =
-            snapshot.docs.map(
-              (doc) => ({
-                id: doc.id,
-                ...doc.data()
-              })
-            );
-
-          setEmployees(
-            employeeList
-          );
-        }
-      );
-
-    return () => unsubscribe();
-
-  }, []);
 
   /* LOGIN */
 
@@ -210,391 +42,258 @@ export default function App() {
 
       try {
 
-        await signInWithEmailAndPassword(
-          auth,
+        setLoading(true);
+        setError("");
+
+        await loginUser(
           email,
           password
         );
 
-      } catch (error) {
+        /* SAVE USER */
 
-        alert(error.message);
-      }
-    };
-
-  /* LOGOUT */
-
-  const handleLogout =
-    async () => {
-
-      await signOut(auth);
-    };
-
-  /* CREATE EMPLOYEE */
-
-  const addEmployee =
-    async () => {
-
-      if (
-        !name.trim() ||
-        !employeeEmail ||
-        !employeePassword
-      ) {
-
-        alert(
-          "Tüm alanları doldur."
+        localStorage.setItem(
+          "pulsehr-user",
+          email
         );
 
-        return;
-      }
+        /* ROLE */
 
-      try {
+        if (
+          email ===
+          "admin@pulsehr.com"
+        ) {
 
-        const userCredential =
-          await createUserWithEmailAndPassword(
-            auth,
-            employeeEmail,
-            employeePassword
+          setUserRole(
+            "admin"
           );
 
-        const user =
-          userCredential.user;
+        } else {
 
-        const newEmployee = {
+          setUserRole(
+            "employee"
+          );
+        }
 
-          uid: user.uid,
+        setLoggedIn(true);
 
-          name,
+      } catch {
 
-          department,
-
-          email: employeeEmail,
-
-          role: "employee",
-
-          online: false,
-
-          checkIn: null,
-
-          checkOut: null,
-
-          late: false,
-
-          createdAt:
-            new Date()
-        };
-
-        await addDoc(
-          collection(
-            db,
-            "employees"
-          ),
-          newEmployee
+        setError(
+          "Email veya şifre hatalı."
         );
 
-        await addDoc(
-          collection(
-            db,
-            "users"
-          ),
-          {
-            email:
-              employeeEmail,
+      } finally {
 
-            role:
-              "employee"
-          }
-        );
-
-        setName("");
-
-        setDepartment(
-          "Yazılım"
-        );
-
-        setEmployeeEmail("");
-
-        setEmployeePassword("");
-
-        alert(
-          "Personel oluşturuldu 🚀"
-        );
-
-      } catch (error) {
-
-        console.log(error);
-
-        alert(error.message);
+        setLoading(false);
       }
     };
 
-  /* CHECK-IN */
+  /* ADMIN */
 
-  const checkIn = (id) => {
-
-    const now =
-      new Date();
-
-    const isLate =
-      now.getHours() > 9 ||
-      (
-        now.getHours() === 9 &&
-        now.getMinutes() > 0
-      );
-
-    setEmployees((prev) =>
-      prev.map((emp) =>
-        emp.id === id
-          ? {
-              ...emp,
-              checkIn:
-                now.toLocaleTimeString(),
-              late:
-                isLate
-            }
-          : emp
-      )
-    );
-  };
-
-  /* CHECK-OUT */
-
-  const checkOut = (id) => {
-
-    const now =
-      new Date();
-
-    setEmployees((prev) =>
-      prev.map((emp) =>
-        emp.id === id
-          ? {
-              ...emp,
-              checkOut:
-                now.toLocaleTimeString()
-            }
-          : emp
-      )
-    );
-  };
-
-  /* DELETE */
-
-  const deleteEmployee =
-    (id) => {
-
-      setEmployees((prev) =>
-        prev.filter(
-          (employee) =>
-            employee.id !== id
-        )
-      );
-    };
-
-  /* FILTER */
-
-  const filteredEmployees =
-    employees.filter(
-      (employee) => {
-
-        const matchesSearch =
-          employee.name
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            );
-
-        const matchesDepartment =
-          filterDepartment ===
-          "Tümü"
-            ? true
-            : employee.department ===
-              filterDepartment;
-
-        return (
-          matchesSearch &&
-          matchesDepartment
-        );
-      }
-    );
-
-  /* ANALYTICS */
-
-  const totalEmployees =
-    employees.length;
-
-  const checkedInEmployees =
-    employees.filter(
-      (employee) =>
-        employee.checkIn
-    ).length;
-
-  const lateEmployees =
-    employees.filter(
-      (employee) =>
-        employee.late
-    ).length;
-
-  const normalEmployees =
-    totalEmployees -
-    lateEmployees;
-
-  const riskScore =
-    totalEmployees > 0
-      ? Math.round(
-          (
-            lateEmployees /
-            totalEmployees
-          ) * 100
-        )
-      : 0;
-
-  let aiMessage =
-    "Tüm departmanlar stabil çalışıyor.";
-
-  let riskColor =
-    "text-green-400";
-
-  if (riskScore >= 50) {
-
-    aiMessage =
-      "Yüksek risk tespit edildi.";
-
-    riskColor =
-      "text-red-400";
-
-  } else if (
-    riskScore >= 25
+  if (
+    loggedIn &&
+    userRole === "admin"
   ) {
 
-    aiMessage =
-      "Orta seviye risk tespit edildi.";
-
-    riskColor =
-      "text-yellow-400";
-  }
-
-  const chartData = [
-    {
-      name: "Normal",
-      value:
-        normalEmployees
-    },
-
-    {
-      name: "Geç",
-      value:
-        lateEmployees
-    }
-  ];
-
-  /* LOADING */
-
-  if (loading) {
-
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white text-4xl font-black">
-        PulseHR AI Loading...
-      </div>
-    );
-  }
 
-  /* LOGIN */
+      <Dashboard
+        handleLogout={() => {
 
-  if (!isLoggedIn) {
+          localStorage.removeItem(
+            "pulsehr-user"
+          );
 
-    return (
-      <LoginPage
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        handleLogin={handleLogin}
+          setLoggedIn(false);
+          setUserRole(null);
+
+        }}
       />
+
     );
   }
 
   /* EMPLOYEE */
 
-  if (userRole === "employee") {
+  if (
+    loggedIn &&
+    userRole === "employee"
+  ) {
 
     return (
-      <EmployeePortal
-        currentUserEmail={
-          currentUserEmail
-        }
+
+      <EmployeeDashboard
+        handleLogout={() => {
+
+          localStorage.removeItem(
+            "pulsehr-user"
+          );
+
+          setLoggedIn(false);
+          setUserRole(null);
+
+        }}
       />
+
     );
   }
 
-  /* ADMIN */
+  /* LOGIN SCREEN */
 
   return (
-    <AdminDashboard
 
-      darkMode={darkMode}
-      setDarkMode={setDarkMode}
+    <div className="min-h-screen bg-[#020617] overflow-hidden relative flex">
 
-      handleLogout={
-        handleLogout
-      }
+      {/* LEFT */}
 
-      totalEmployees={
-        totalEmployees
-      }
+      <div className="hidden lg:flex flex-1 relative items-center justify-center overflow-hidden">
 
-      checkedInEmployees={
-        checkedInEmployees
-      }
+        {/* GRID */}
 
-      lateEmployees={
-        lateEmployees
-      }
+        <div className="absolute inset-0 opacity-[0.05]">
 
-      riskScore={
-        riskScore
-      }
+          <div className="w-full h-full bg-[linear-gradient(to_right,#ffffff22_1px,transparent_1px),linear-gradient(to_bottom,#ffffff22_1px,transparent_1px)] bg-[size:70px_70px]" />
 
-      riskColor={
-        riskColor
-      }
+        </div>
 
-      aiMessage={
-        aiMessage
-      }
+        {/* GLOW */}
 
-      chartData={
-        chartData
-      }
+        <div className="absolute top-[-150px] left-[-150px] w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-[140px]" />
 
-      name={name}
-      setName={setName}
+        <div className="absolute bottom-[-150px] right-[-150px] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[140px]" />
 
-      department={department}
-      setDepartment={setDepartment}
+        {/* CONTENT */}
 
-      employeeEmail={employeeEmail}
-      setEmployeeEmail={setEmployeeEmail}
+        <div className="relative z-10 max-w-[650px] px-16">
 
-      employeePassword={employeePassword}
-      setEmployeePassword={setEmployeePassword}
+          <p className="text-cyan-400 tracking-[7px] uppercase text-sm font-semibold mb-6">
+            Kurumsal Yapay Zeka Platformu
+          </p>
 
-      addEmployee={addEmployee}
+          <h1 className="text-[110px] font-black text-white leading-[0.9] tracking-[-6px]">
 
-      search={search}
-      setSearch={setSearch}
+            PulseHR
+            <br />
+            AI
 
-      filterDepartment={filterDepartment}
-      setFilterDepartment={setFilterDepartment}
+          </h1>
 
-      filteredEmployees={filteredEmployees}
+          <p className="text-gray-400 text-2xl mt-10 leading-[50px]">
 
-      checkIn={checkIn}
-      checkOut={checkOut}
+            Yeni nesil yapay zeka destekli premium insan kaynakları platformu.
 
-      deleteEmployee={deleteEmployee}
+          </p>
 
-      userRole={userRole}
+        </div>
 
-    />
+      </div>
+
+      {/* RIGHT */}
+
+      <div className="w-full lg:w-[700px] relative flex items-center justify-center p-10">
+
+        {/* CARD */}
+
+        <div className="relative z-10 w-full max-w-[520px] bg-white/[0.06] border border-white/10 backdrop-blur-[30px] rounded-[50px] p-12 shadow-[0_0_120px_rgba(59,130,246,0.15)] overflow-hidden">
+
+          {/* GLOW */}
+
+          <div className="absolute top-[-50px] right-[-50px] w-[250px] h-[250px] bg-cyan-500/20 rounded-full blur-[100px]" />
+
+          {/* CONTENT */}
+
+          <div className="relative z-10">
+
+            <div className="w-28 h-28 rounded-[35px] bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center text-white text-5xl font-black shadow-[0_0_60px_rgba(34,211,238,0.4)]">
+
+              HR
+
+            </div>
+
+            {/* TITLE */}
+
+            <div className="mt-10">
+
+              <p className="text-cyan-400 tracking-[5px] uppercase text-sm font-semibold mb-4">
+                Güvenli Giriş
+              </p>
+
+              <h2 className="text-6xl font-black text-white leading-tight">
+
+                Tekrar
+                <br />
+                Hoş Geldiniz
+
+              </h2>
+
+            </div>
+
+            {/* FORM */}
+
+            <div className="mt-12 space-y-6">
+
+              <input
+                value={email}
+                onChange={(e) =>
+                  setEmail(
+                    e.target.value
+                  )
+                }
+                placeholder="Kurumsal email"
+                className="w-full bg-black/20 border border-white/10 rounded-[24px] px-7 py-6 text-white text-xl outline-none"
+              />
+
+              <input
+                type="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(
+                    e.target.value
+                  )
+                }
+                placeholder="Şifre"
+                className="w-full bg-black/20 border border-white/10 rounded-[24px] px-7 py-6 text-white text-xl outline-none"
+              />
+
+              {/* ERROR */}
+
+              {error && (
+
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-4 rounded-2xl">
+
+                  {error}
+
+                </div>
+
+              )}
+
+              {/* BUTTON */}
+
+              <button
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full mt-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-[1.015] transition-all duration-300 py-6 rounded-[24px] text-white font-black text-2xl shadow-[0_0_60px_rgba(34,211,238,0.35)]"
+              >
+
+                {
+                  loading
+
+                    ? "Giriş Yapılıyor..."
+
+                    : "Platforma Giriş Yap"
+                }
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
   );
 }
