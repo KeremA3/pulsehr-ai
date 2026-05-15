@@ -1,3 +1,5 @@
+// src/firebase/firestoreService.js
+
 import {
 
   collection,
@@ -5,10 +7,8 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  serverTimestamp,
-  query,
-  orderBy,
-  updateDoc
+  updateDoc,
+  serverTimestamp
 
 } from "firebase/firestore";
 
@@ -18,174 +18,287 @@ import {
 
 } from "./config";
 
-/* EMPLOYEES */
+/* ================================================= */
+/* COLLECTIONS */
+/* ================================================= */
 
 const employeeCollection =
-  collection(
-    db,
-    "employees"
-  );
+  collection(db, "employees");
 
-/* GET EMPLOYEES */
+const attendanceCollection =
+  collection(db, "attendance");
 
-export const getEmployees =
-  async () => {
+const departmentCollection =
+  collection(db, "departments");
 
-    const data =
-      await getDocs(
-        employeeCollection
-      );
+const employeeProfileCollection =
+  collection(db, "employeeProfiles");
 
-    return data.docs.map(
-      (doc) => ({
-
-        id: doc.id,
-
-        ...doc.data()
-
-      })
-    );
-  };
-
-/* ADD EMPLOYEE */
+/* ================================================= */
+/* EMPLOYEES */
+/* ================================================= */
 
 export const addEmployee =
-  async (
-    employee
-  ) => {
+  async (employee) => {
 
     await addDoc(
 
       employeeCollection,
 
-      employee
-
-    );
-  };
-
-/* DELETE EMPLOYEE */
-
-export const deleteEmployee =
-  async (id) => {
-
-    const employeeDoc =
-      doc(
-        db,
-        "employees",
-        id
-      );
-
-    await deleteDoc(
-      employeeDoc
-    );
-  };
-
-/* ATTENDANCE */
-
-const attendanceCollection =
-  collection(
-    db,
-    "attendance"
-  );
-
-/* CHECK IN */
-
-export const checkInEmployee =
-  async (
-    employeeName
-  ) => {
-
-    const now =
-      new Date();
-
-    await addDoc(
-
-      attendanceCollection,
-
       {
 
-        employeeName,
-
-        type: "check-in",
+        ...employee,
 
         createdAt:
-          serverTimestamp(),
-
-        hour:
-          now.getHours(),
-
-        minute:
-          now.getMinutes()
+          serverTimestamp()
 
       }
     );
   };
 
-/* CHECK OUT */
-
-export const checkOutEmployee =
-  async (
-    employeeName
-  ) => {
-
-    const now =
-      new Date();
-
-    await addDoc(
-
-      attendanceCollection,
-
-      {
-
-        employeeName,
-
-        type: "check-out",
-
-        createdAt:
-          serverTimestamp(),
-
-        hour:
-          now.getHours(),
-
-        minute:
-          now.getMinutes()
-
-      }
-    );
-  };
-
-/* GET ATTENDANCE */
-
-export const getAttendanceLogs =
+export const getEmployees =
   async () => {
 
-    const q =
-      query(
-
-        attendanceCollection,
-
-        orderBy(
-          "createdAt",
-          "desc"
-        )
-
+    const snapshot =
+      await getDocs(
+        employeeCollection
       );
 
-    const data =
-      await getDocs(q);
-
-    return data.docs.map(
+    return snapshot.docs.map(
       (doc) => ({
 
         id: doc.id,
 
         ...doc.data()
 
-      })
+      }))
+  };
+
+export const deleteEmployee =
+  async (id) => {
+
+    await deleteDoc(
+
+      doc(
+        employeeCollection,
+        id
+      )
     );
   };
 
+/* ================================================= */
+/* ATTENDANCE */
+/* ================================================= */
+
+export const checkInEmployee =
+  async (
+
+    employeeName
+
+  ) => {
+
+    await addDoc(
+
+      attendanceCollection,
+
+      {
+
+        employeeName,
+
+        type: "Giriş",
+
+        time:
+          new Date()
+            .toLocaleString(),
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+  };
+
+export const checkOutEmployee =
+  async (
+
+    employeeName
+
+  ) => {
+
+    await addDoc(
+
+      attendanceCollection,
+
+      {
+
+        employeeName,
+
+        type: "Çıkış",
+
+        time:
+          new Date()
+            .toLocaleString(),
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+  };
+
+export const getAttendanceLogs =
+  async () => {
+
+    const snapshot =
+      await getDocs(
+        attendanceCollection
+      );
+
+    return snapshot.docs.map(
+      (doc) => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+      }))
+  };
+
+/* ================================================= */
+/* DEPARTMENTS */
+/* ================================================= */
+
+export const getDepartments =
+  async () => {
+
+    const snapshot =
+      await getDocs(
+        departmentCollection
+      );
+
+    return snapshot.docs.map(
+      (doc) => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+      }))
+  };
+
+/* ================================================= */
+/* EMPLOYEE PROFILES */
+/* ================================================= */
+
+export const createEmployeeProfile =
+  async (
+
+    email,
+    department
+
+  ) => {
+
+    await addDoc(
+
+      employeeProfileCollection,
+
+      {
+
+        email,
+
+        department,
+
+        role: "employee",
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+  };
+
+export const getEmployeeProfiles =
+  async () => {
+
+    const snapshot =
+      await getDocs(
+        employeeProfileCollection
+      );
+
+    return snapshot.docs.map(
+      (doc) => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+      }))
+  };/* ================================================= */
+/* NOTIFICATIONS */
+/* ================================================= */
+
+const notificationCollection =
+  collection(
+    db,
+    "notifications"
+  );
+
+/* CREATE NOTIFICATION */
+
+export const createNotification =
+  async (
+
+    employeeName,
+    message
+
+  ) => {
+
+    await addDoc(
+
+      notificationCollection,
+
+      {
+
+        employeeName,
+
+        message,
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+  };
+
+/* GET NOTIFICATIONS */
+
+export const getNotifications =
+  async (
+    employeeName
+  ) => {
+
+    const snapshot =
+      await getDocs(
+        notificationCollection
+      );
+
+    return snapshot.docs
+      .map((doc) => ({
+
+        id: doc.id,
+
+        ...doc.data()
+
+      }))
+      .filter(
+        (item) =>
+
+          item.employeeName ===
+          employeeName
+      );
+  };/* ================================================= */
 /* LEAVE REQUESTS */
+/* ================================================= */
 
 const leaveCollection =
   collection(
@@ -213,7 +326,7 @@ export const createLeaveRequest =
 
         reason,
 
-        status: "Beklemede",
+        status: "Bekliyor",
 
         createdAt:
           serverTimestamp()
@@ -227,23 +340,22 @@ export const createLeaveRequest =
 export const getLeaveRequests =
   async () => {
 
-    const data =
+    const snapshot =
       await getDocs(
         leaveCollection
       );
 
-    return data.docs.map(
+    return snapshot.docs.map(
       (doc) => ({
 
         id: doc.id,
 
         ...doc.data()
 
-      })
-    );
+      }))
   };
 
-/* UPDATE LEAVE STATUS */
+/* UPDATE STATUS */
 
 export const updateLeaveStatus =
   async (
@@ -253,18 +365,12 @@ export const updateLeaveStatus =
 
   ) => {
 
-    const leaveDoc =
-      doc(
-
-        db,
-        "leaveRequests",
-        id
-
-      );
-
     await updateDoc(
 
-      leaveDoc,
+      doc(
+        leaveCollection,
+        id
+      ),
 
       {
 
@@ -272,68 +378,11 @@ export const updateLeaveStatus =
 
       }
     );
-  };
+  };/* ================================================= */
+/* PAYROLL */
+/* ================================================= */
 
-/* NOTIFICATIONS */
-
-const notificationCollection =
-  collection(
-    db,
-    "notifications"
-  );
-
-/* CREATE NOTIFICATION */
-
-export const createNotification =
-  async (
-
-    user,
-    message
-
-  ) => {
-
-    await addDoc(
-
-      notificationCollection,
-
-      {
-
-        user,
-
-        message,
-
-        createdAt:
-          serverTimestamp()
-
-      }
-    );
-  };
-
-/* GET NOTIFICATIONS */
-
-export const getNotifications =
-  async (
-    user
-  ) => {
-
-    const data =
-      await getDocs(
-        notificationCollection
-      );
-
-    return data.docs
-      .map((doc) => ({
-
-        id: doc.id,
-
-        ...doc.data()
-
-      }))
-      .filter(
-        (item) =>
-          item.user === user
-      );
-  };const payrollCollection =
+const payrollCollection =
   collection(
     db,
     "payroll"
@@ -372,104 +421,22 @@ export const createPayroll =
     );
   };
 
-/* GET PAYROLL */
+/* GET PAYROLLS */
 
 export const getPayrolls =
   async () => {
 
-    const data =
+    const snapshot =
       await getDocs(
         payrollCollection
       );
 
-    return data.docs.map(
+    return snapshot.docs.map(
       (doc) => ({
-
-        id: doc.id,
-
-        ...doc.data()
-
-      })
-    );
-  };
-
-/* GET EMPLOYEE PAYROLL */
-
-export const getEmployeePayroll =
-  async (
-    employeeName
-  ) => {
-
-    const data =
-      await getDocs(
-        payrollCollection
-      );
-
-    return data.docs
-      .map((doc) => ({
 
         id: doc.id,
 
         ...doc.data()
 
       }))
-      .filter(
-        (item) =>
-          item.employeeName ===
-          employeeName
-      );
-  };const employeeProfileCollection =
-  collection(
-    db,
-    "employeeProfiles"
-  );
-
-/* CREATE EMPLOYEE PROFILE */
-
-export const createEmployeeProfile =
-  async (
-
-    email,
-    department
-
-  ) => {
-
-    await addDoc(
-
-      employeeProfileCollection,
-
-      {
-
-        email,
-
-        department,
-
-        role: "employee",
-
-        createdAt:
-          serverTimestamp()
-
-      }
-    );
-  };
-
-/* GET EMPLOYEE PROFILE */
-
-export const getEmployeeProfiles =
-  async () => {
-
-    const data =
-      await getDocs(
-        employeeProfileCollection
-      );
-
-    return data.docs.map(
-      (doc) => ({
-
-        id: doc.id,
-
-        ...doc.data()
-
-      })
-    );
   };

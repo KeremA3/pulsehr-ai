@@ -1,4 +1,8 @@
-import { useState } from "react";
+import {
+
+  useState
+
+} from "react";
 
 import {
 
@@ -11,53 +15,61 @@ import PremiumToast from "./PremiumToast";
 
 export default function AttendancePanel() {
 
+  const [cardId,
+    setCardId] =
+    useState("");
+
+  const [checkedIn,
+    setCheckedIn] =
+    useState(false);
+
   const [toast,
     setToast] =
     useState(null);
 
-  const employeeName =
-    localStorage.getItem(
-      "pulsehr-user"
-    ) || "Personel";
+  /* HANDLE CARD */
 
-  /* CHECK IN */
-
-  const handleCheckIn =
+  const handleCard =
     async () => {
 
-      await checkInEmployee(
-        employeeName
-      );
+      if (!cardId) return;
 
-      setToast(
-        "Mesai başlatıldı."
-      );
+      const currentTime =
+        new Date()
+          .toLocaleString();
+
+      if (!checkedIn) {
+
+        await checkInEmployee(
+          cardId
+        );
+
+        setToast(
+          `Mesai başladı • ${currentTime}`
+        );
+
+        setCheckedIn(true);
+
+      } else {
+
+        await checkOutEmployee(
+          cardId
+        );
+
+        setToast(
+          `Mesai tamamlandı • ${currentTime}`
+        );
+
+        setCheckedIn(false);
+      }
+
+      setCardId("");
 
       setTimeout(() => {
 
         setToast(null);
 
-      }, 2500);
-    };
-
-  /* CHECK OUT */
-
-  const handleCheckOut =
-    async () => {
-
-      await checkOutEmployee(
-        employeeName
-      );
-
-      setToast(
-        "Mesai bitirildi."
-      );
-
-      setTimeout(() => {
-
-        setToast(null);
-
-      }, 2500);
+      }, 3000);
     };
 
   return (
@@ -72,56 +84,75 @@ export default function AttendancePanel() {
 
       )}
 
-      <div className="relative overflow-hidden bg-white/[0.04] border border-white/10 rounded-[30px] p-6 backdrop-blur-[30px]">
+      <div className="relative overflow-hidden bg-white/[0.04] border border-white/10 rounded-[32px] p-8 backdrop-blur-[30px]">
 
         {/* GLOW */}
 
-        <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-cyan-500/10 rounded-full blur-[60px]" />
+        <div className="absolute top-0 right-0 w-[180px] h-[180px] bg-cyan-500/10 rounded-full blur-[80px]" />
 
-        {/* CONTENT */}
+        {/* HEADER */}
 
-        <div className="relative z-10">
+        <div className="relative z-10 mb-8">
 
-          <p className="text-cyan-400 uppercase tracking-[4px] text-xs font-semibold mb-3">
-            Personel Takibi
+          <p className="text-cyan-400 uppercase tracking-[5px] text-xs font-semibold mb-3">
+            Smart Attendance
           </p>
 
-          <h2 className="text-3xl font-black text-white">
-            Mesai Kontrolü
+          <h2 className="text-4xl font-black text-white">
+            Kartlı Giriş Sistemi
           </h2>
 
-          <p className="text-gray-400 mt-4 leading-8">
+        </div>
 
-            Giriş yapan kullanıcı:
-            <span className="text-cyan-400 font-bold ml-2">
+        {/* CARD AREA */}
 
-              {employeeName}
+        <div className="relative z-10 flex flex-col lg:flex-row gap-5">
 
-            </span>
+          <input
+            value={cardId}
+            onChange={(e) =>
+              setCardId(
+                e.target.value
+              )
+            }
+            placeholder="Kart ID okut..."
+            className="flex-1 bg-black/20 border border-white/10 rounded-[24px] px-6 py-5 text-white outline-none"
+          />
 
-          </p>
+          <button
+            onClick={handleCard}
+            className="px-8 py-5 rounded-[24px] bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black shadow-[0_0_35px_rgba(34,211,238,0.35)] hover:scale-105 transition-all duration-300"
+          >
 
-          {/* BUTTONS */}
+            Kartı Oku
 
-          <div className="flex flex-wrap gap-4 mt-8">
+          </button>
 
-            <button
-              onClick={handleCheckIn}
-              className="px-7 py-4 rounded-[22px] bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black shadow-[0_0_35px_rgba(34,197,94,0.35)] hover:scale-105 transition-all duration-300"
-            >
+        </div>
 
-              Mesaiye Başla
+        {/* STATUS */}
 
-            </button>
+        <div className="relative z-10 mt-8">
 
-            <button
-              onClick={handleCheckOut}
-              className="px-7 py-4 rounded-[22px] bg-gradient-to-r from-red-500 to-pink-600 text-white font-black shadow-[0_0_35px_rgba(244,63,94,0.35)] hover:scale-105 transition-all duration-300"
-            >
+          <div className={`inline-flex items-center gap-3 px-5 py-3 rounded-2xl border text-sm font-bold ${
+            checkedIn
+              ? "bg-green-500/10 border-green-500/20 text-green-400"
+              : "bg-red-500/10 border-red-500/20 text-red-400"
+          }`}>
 
-              Mesaiyi Bitir
+            <div className={`w-3 h-3 rounded-full ${
+              checkedIn
+                ? "bg-green-400"
+                : "bg-red-400"
+            }`} />
 
-            </button>
+            {
+
+              checkedIn
+                ? "Mesai Aktif"
+                : "Mesai Dışı"
+
+            }
 
           </div>
 
